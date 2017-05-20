@@ -14,6 +14,8 @@ public class Lock {
 
 	public static PrintStream ardOut;
 	
+	static boolean locked = true;
+	
 	public static void main(String[] args) {
 		SerialPort[] ports = SerialPort.getCommPorts();
 		String[] names = new String[ports.length];
@@ -39,17 +41,17 @@ public class Lock {
 		} catch (InterruptedException e2) {
 			e2.printStackTrace();
 		}
-		ardOut.print(10);
-		
+		ardOut.print(0);
 		JFrame frame = new JFrame();
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setAlwaysOnTop(true);
 		frame.setUndecorated(true);
-		frame.setVisible(true);
 		Display display = new Display(frame.getWidth(), frame.getHeight());
 		display.secret = code;
 		frame.add(display);
+		
+		frame.setVisible(true);
 		
 		frame.addKeyListener(new KeyListener() {
 
@@ -68,7 +70,8 @@ public class Lock {
 					display.code = display.code.substring(0,display.code.length() - 1);
 				} else if(e.getKeyCode() == KeyEvent.VK_ENTER && display.code.length() == 4) {
 					if(display.code.equals(display.secret)) {
-						Lock.ardOut.print(170);
+						locked = false;
+						ardOut.print(180);
 						display.background = Color.GREEN;
 					}
 				}
@@ -81,7 +84,15 @@ public class Lock {
 		});
 		
 		while(true) {
-			display.repaint();
+			display.width = frame.getWidth();
+			display.height = frame.getHeight();
+			//ardOut.print(locked ? 0 : 180123);
+			display.paintImmediately(0, 0, display.getWidth(), display.getHeight());
+			try {
+				Thread.sleep(10l);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
 		}
 	}
 	
