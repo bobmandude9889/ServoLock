@@ -16,6 +16,10 @@ public class Lock {
 	
 	static boolean locked = true;
 	
+	static boolean timerRunning = false;
+	static long startTime;
+	static long endTime = -1;
+	
 	public static void main(String[] args) {
 		SerialPort[] ports = SerialPort.getCommPorts();
 		String[] names = new String[ports.length];
@@ -66,13 +70,18 @@ public class Lock {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
+				if(!timerRunning && endTime == -1 && e.getKeyCode() == KeyEvent.VK_SPACE) {
+					timerRunning = true;
+					startTime = System.currentTimeMillis();
+				}
+				
 				if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE && display.code.length() > 0) {
 					display.code = display.code.substring(0,display.code.length() - 1);
 				} else if(e.getKeyCode() == KeyEvent.VK_ENTER && display.code.length() == 4) {
 					if(display.code.equals(display.secret)) {
-						locked = false;
-						ardOut.print(180);
+						ardOut.println(170);
 						display.background = Color.GREEN;
+						timerRunning = false;
 					}
 				}
 			}
@@ -86,8 +95,11 @@ public class Lock {
 		while(true) {
 			display.width = frame.getWidth();
 			display.height = frame.getHeight();
-			//ardOut.print(locked ? 0 : 180123);
+			if(timerRunning) {
+				endTime = System.currentTimeMillis();
+			}
 			display.paintImmediately(0, 0, display.getWidth(), display.getHeight());
+				
 			try {
 				Thread.sleep(10l);
 			} catch (InterruptedException e1) {
